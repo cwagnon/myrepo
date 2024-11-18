@@ -1,0 +1,83 @@
+---
+title: "NMDS Analysis Tutorial"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+## Introduction
+
+This tutorial demonstrates how to perform a Non-Metric Dimensional Scaling (NMDS) analysis using R. We will use a sample dataset for better understanding.
+
+## Setup
+
+First, let's load the necessary packages.
+
+```{r setup}
+library(vegan)
+library(tidyverse)
+library(RColorBrewer)
+```
+
+## Sample Data Creation
+
+To keep things simple, we are simulating a sample dataset for the tutorial.
+
+```{r data-creation}
+set.seed(123)  # Setting a seed for reproducibility
+
+bsll <- data.frame(
+  SampleNo = 1:20,
+  Animal = sample(c("A", "B", "C", "D", "E"), 20, replace = TRUE),
+  Phase = sample(c("PhaseA", "PhaseB"), 20, replace = TRUE),  # Renamed column & values
+  Sp1 = rnorm(20, 10, 5),
+  Sp2 = rnorm(20, 15, 4),
+  Sp3 = rnorm(20, 12, 3)
+)
+
+bsll_env <- bsll %>% select(SampleNo, Animal, Phase)
+bsll_sp <- bsll %>% select(-SampleNo, -Animal, -Phase)
+
+```
+
+## Data Preparation
+
+Next, we prepare the data by converting necessary columns to factors and generating a colour palette.
+
+```{r data-preparation}
+bsll_env$Animal_factor <- as.factor(bsll_env$Animal)
+num_sites <- length(unique(bsll_env$Animal_factor))
+color_palette <- colorRampPalette(brewer.pal(9, "Set1"))(num_sites)
+```
+
+## NMDS Analysis
+
+With the data ready, we can now compute the NMDS analysis.
+
+```{r nmds-analysis}
+NMDS_result <- metaMDS(bsll_sp, distance = "bray", k = 2)
+```
+
+## Plotting
+
+Finally, let's visualize the NMDS results.
+
+```{r plotting, fig.width=8, fig.height=6}
+par(mar = c(5.1, 4.1, 4.1, 6))
+plot(NMDS_result$points, 
+     col=color_palette[as.integer(bsll_env$Animal_factor)], 
+     pch=shape_vec, 
+     cex=1.2, 
+     main=paste("NMDS Bacterial Species Analysis\nStress:", round(NMDS_result$stress, 3)), 
+     xlab= "NMDS Axis 1",
+     ylab= "NMDS Axis 2")
+ordispider(NMDS_result, groups=bsll_env$Phase, label = TRUE)
+legend('topright',
+       legend=levels(bsll_env$Animal_factor),
+       fill=color_palette,
+       title="Animal",
+       cex=1,
+       xpd = TRUE,
+       inset = c(-0.10, 0))
+
+```
