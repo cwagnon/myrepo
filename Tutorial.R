@@ -5,6 +5,8 @@ library(vegan)
 library(tidyverse)
 library(viridis)
 
+install.packages("viridis")
+
 orders <- read_csv("data/condensed_order.csv")
 
 # A. RUNNING THE NMDS IN VEGAN #################################################
